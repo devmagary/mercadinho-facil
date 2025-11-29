@@ -37,6 +37,11 @@ fun HistoryScreen(
         }
     }
 
+    // Recarregar histórico sempre que a tela for exibida
+    LaunchedEffect(Unit) {
+        viewModel.loadHistory()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(

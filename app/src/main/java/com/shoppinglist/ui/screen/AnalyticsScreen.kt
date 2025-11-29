@@ -28,6 +28,11 @@ fun AnalyticsScreen(
     val averagePerShopping by viewModel.averagePerShopping.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
+    // Recarregar dados sempre que a tela for exibida
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
