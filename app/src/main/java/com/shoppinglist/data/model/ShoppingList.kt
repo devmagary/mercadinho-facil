@@ -1,0 +1,70 @@
+package com.shoppinglist.data.model
+
+import com.google.firebase.firestore.DocumentId
+import com.google.firebase.firestore.ServerTimestamp
+import java.util.Date
+
+/**
+ * Modelo de dados para uma lista de compras (atual ou do histórico)
+ */
+data class ShoppingList(
+    @DocumentId
+    val id: String = "",
+    val familyId: String = "",
+    val items: List<ShoppingItem> = emptyList(),
+    val status: ListStatus = ListStatus.ACTIVE,
+    @ServerTimestamp
+    val createdAt: Date? = null,
+    val completedAt: Date? = null,
+    val totalValue: Double = 0.0
+) {
+    /**
+     * Calcula o valor total da lista
+     */
+    fun calculateTotal(): Double {
+        return items.sumOf { it.getSubtotal() }
+    }
+    
+    /**
+     * Converte para Map para salvar no Firestore
+     */
+    fun toMap(): Map<String, Any?> {
+        return mapOf(
+            "familyId" to familyId,
+            "items" to items.map { it.toMap() },
+            "status" to status.name,
+            "createdAt" to createdAt,
+            "completedAt" to completedAt,
+            "totalValue" to calculateTotal()
+        )
+    }
+    
+    companion object {
+        /**
+         * Cria uma ShoppingList a partir de um Map do Firestore
+         */
+        fun fromMap(id: String, map: Map<String, Any?>): ShoppingList {
+            val itemsList = (map["items"] as? List<Map<String, Any?>>)?.mapIndexed { index, itemMap ->
+                ShoppingItem.fromMap(index.toString(), itemMap)
+            } ?: emptyList()
+            
+            return ShoppingList(
+                id = id,
+                familyId = map["familyId"] as? String ?: "",
+                items = itemsList,
+                status = ListStatus.valueOf(map["status"] as? String ?: "ACTIVE"),
+                createdAt = map["createdAt"] as? Date,
+                completedAt = map["completedAt"] as? Date,
+                totalValue = (map["totalValue"] as? Number)?.toDouble() ?: 0.0
+            )
+        }
+    }
+}
+
+/**
+ * Enum para status da lista
+ */
+enum class ListStatus {
+    ACTIVE,      // Lista ativa atual
+    COMPLETED    // Lista finalizada (no histórico)
+}

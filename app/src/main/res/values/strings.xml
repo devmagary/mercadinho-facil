@@ -1,0 +1,43 @@
+<resources>
+    <string name="app_name">Lista de Compras</string>
+    
+    <!-- Telas -->
+    <string name="shopping_list">Lista de Compras</string>
+    <string name="history">Histórico</string>
+    <string name="analytics">Análises</string>
+    
+    <!-- Ações -->
+    <string name="add_item">Adicionar Item</string>
+    <string name="edit_item">Editar Item</string>
+    <string name="delete_item">Deletar Item</string>
+    <string name="save">Salvar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="finish_shopping">Finalizar Compra</string>
+    <string name="repeat_shopping">Repetir Compra</string>
+    
+    <!-- Campos -->
+    <string name="item_name">Nome do Item</string>
+    <string name="quantity">Quantidade</string>
+    <string name="unit">Unidade</string>
+    <string name="price">Preço (opcional)</string>
+    <string name="image_url">URL da Imagem (opcional)</string>
+    
+    <!-- Unidades -->
+    <string name="unit_un">Un</string>
+    <string name="unit_kg">Kg</string>
+    <string name="unit_g">g</string>
+    <string name="unit_l">L</string>
+    
+    <!-- Mensagens -->
+    <string name="empty_list">Sua lista está vazia</string>
+    <string name="empty_history">Nenhuma compra finalizada</string>
+    <string name="total">Total:</string>
+    <string name="shopping_finished">Compra finalizada com sucesso!</string>
+    <string name="item_added">Item adicionado</string>
+    <string name="item_updated">Item atualizado</string>
+    <string name="item_deleted">Item removido</string>
+    
+    <!-- Erros -->
+    <string name="error_empty_name">Nome não pode ser vazio</string>
+    <string name="error_invalid_quantity">Quantidade inválida</string>
+</resources>
