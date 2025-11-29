@@ -63,3 +63,5 @@ Desktop.ini
 
 # Jetpack Compose
 compose_compiler_config.json
+teste.logcat
+gradlew.bat
