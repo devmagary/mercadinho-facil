@@ -4,6 +4,8 @@ Aplicativo Android para gerenciamento de listas de compras compartilhadas em tem
 
 ## 📱 Características
 
+- 🔐 **Autenticação de Usuários**: Sistema de login e registro com Firebase Authentication
+- 👨‍👩‍👧‍👦 **Sistema de Famílias**: Crie ou entre em famílias usando códigos de convite
 - ✅ **CRUD Completo**: Adicionar, editar, remover e marcar itens como comprados
 - 🔄 **Sincronização em Tempo Real**: Firebase Firestore sincroniza automaticamente entre todos os dispositivos
 - 👨‍👩‍👧‍👦 **Compartilhamento Familiar**: Múltiplos usuários podem gerenciar a mesma lista
@@ -36,6 +38,7 @@ app/src/main/java/com/shoppinglist/
 │       ├── AuthRepository.kt    # Autenticação e famílias
 │       └── ShoppingRepository.kt # Operações de lista
 ├── viewmodel/
+│   ├── AuthViewModel.kt         # ViewModel de autenticação
 │   ├── ShoppingListViewModel.kt # ViewModel principal
 │   ├── HistoryViewModel.kt      # ViewModel de histórico
 │   └── AnalyticsViewModel.kt    # ViewModel de analytics
@@ -45,6 +48,8 @@ app/src/main/java/com/shoppinglist/
 │   │   ├── Type.kt
 │   │   └── Theme.kt
 │   ├── screen/                  # Telas composable
+│   │   ├── LoginScreen.kt
+│   │   ├── RegisterScreen.kt
 │   │   ├── ShoppingListScreen.kt
 │   │   ├── HistoryScreen.kt
 │   │   ├── AnalyticsScreen.kt

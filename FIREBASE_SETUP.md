@@ -89,7 +89,59 @@ service cloud.firestore {
 
 3. Clique em "Publish" para salvar as regras
 
-## 7. Estrutura das Coleções no Firestore
+## 7. ⚠️ **IMPORTANTE**: Criar Índice Composto do Firestore
+
+Para que o histórico de compras funcione corretamente, você **PRECISA** criar um índice composto no Firestore:
+
+### Por que é necessário?
+
+O aplicativo precisa:
+1. Filtrar o histórico por `familyId` (para mostrar apenas compras da sua família)
+2. Ordenar por `completedAt` (data de conclusão, mais recente primeiro)
+
+O Firestore exige um índice para consultas que combinam filtros com ordenação.
+
+### Como criar o índice
+
+**Opção 1: Link Automático (Recomendado)**
+
+1. Execute o aplicativo e tente visualizar o Histórico
+2. O Firestore detectará a consulta e mostrará um erro no Logcat com um **link direto**
+3. Clique no link para criar o índice automaticamente
+4. Aguarde alguns minutos para o índice ficar pronto
+
+**Opção 2: Criação Manual**
+
+1. Acesse o [Firebase Console](https://console.firebase.google.com/)
+2. Vá para **Firestore Database → Indexes**
+3. Clique em **Create Index**
+4. Configure:
+   - **Collection ID**: `history`
+   - **Fields to index**:
+     - Campo 1: `familyId` → **Ascending**
+     - Campo 2: `completedAt` → **Descending**
+   - **Query scopes**: Collection
+5. Clique em **Create**
+6. Aguarde o status mudar para "Enabled" (pode levar alguns minutos)
+
+**Exemplo visual da configuração:**
+
+```
+Collection ID:    history
+Fields indexed:   
+  - familyId      [Ascending]
+  - completedAt   [Descending]
+Query scope:      Collection
+```
+
+### Verificar se funcionou
+
+Após criar o índice:
+1. Finalize uma nova compra no app
+2. Vá para a aba "Histórico"
+3. A compra deve aparecer com a data correta
+
+## 8. Estrutura das Coleções no Firestore
 
 > **⚠️ IMPORTANTE: Você NÃO precisa criar as coleções manualmente!**
 >
@@ -168,7 +220,7 @@ Histórico de compras finalizadas
 }
 ```
 
-## 8. Testando a Configuração
+## 9. Testando a Configuração
 
 1. Abra o projeto no Android Studio
 2. Sincronize o Gradle (Sync Project with Gradle Files)
@@ -178,7 +230,7 @@ Histórico de compras finalizadas
    - O usuário aparece em **Authentication > Users**
    - Os documentos são criados em **Firestore Database**
 
-## Solução de Problemas
+## 10. Solução de Problemas
 
 ### Erro: "google-services.json não encontrado"
 - Certifique-se de que o arquivo está em `app/google-services.json`
@@ -195,16 +247,21 @@ Histórico de compras finalizadas
 allow read, write: if true;
 ```
 
-## Próximos Passos
+### Histórico vazio ou sem datas
+- **SOLUÇÃO**: Crie o índice composto conforme descrito na seção 7
+- Verifique se o índice está com status "Enabled" no Firebase Console
+
+## 11. Próximos Passos
 
 Após concluir a configuração, você pode:
 - Adicionar mais métodos de autenticação (Google, Facebook, etc.)
-- Configurar índices compostos para consultas complexas
+- Configurar índices compostos adicionais para consultas complexas
 - Implementar Cloud Functions para lógica server-side
 - Adicionar Firebase Storage para armazenar imagens de produtos
 
-## Recursos Adicionais
+## 12. Recursos Adicionais
 
 - [Documentação oficial do Firebase](https://firebase.google.com/docs)
 - [Firebase Authentication](https://firebase.google.com/docs/auth/android/start)
 - [Cloud Firestore](https://firebase.google.com/docs/firestore/quickstart)
+- [Firestore Indexes](https://firebase.google.com/docs/firestore/query-data/indexing)

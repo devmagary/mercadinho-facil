@@ -174,12 +174,15 @@ class ShoppingRepository(
             // Criar entrada no histórico
             val completedList = currentList.copy(
                 familyId = familyId, // Garantir familyId correto
-                status = ListStatus.COMPLETED,
-                completedAt = Date()
+                status = ListStatus.COMPLETED
             )
             
+            // Salvar no histórico com timestamp do servidor
+            val historyData = completedList.toMap().toMutableMap()
+            historyData["completedAt"] = com.google.firebase.firestore.FieldValue.serverTimestamp()
+            
             firestore.collection("history")
-                .add(completedList.toMap())
+                .add(historyData)
                 .await()
             
             // Limpar lista atual
