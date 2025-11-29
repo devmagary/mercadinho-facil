@@ -149,11 +149,7 @@ fun NavGraph(
             }
             
             composable(Screen.History.route) {
-                HistoryScreen(
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    }
-                )
+                HistoryScreen()
             }
             
             composable(Screen.Analytics.route) {

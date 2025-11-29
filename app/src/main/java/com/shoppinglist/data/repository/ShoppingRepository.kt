@@ -59,7 +59,10 @@ class ShoppingRepository(
             }
             
             val updatedItems = currentList.items + item
-            val updatedList = currentList.copy(items = updatedItems)
+            val updatedList = currentList.copy(
+                familyId = familyId, // Garantir familyId correto
+                items = updatedItems
+            )
             
             docRef.set(updatedList.toMap()).await()
             Result.success(Unit)
@@ -84,7 +87,10 @@ class ShoppingRepository(
             val updatedItems = currentList.items.map { 
                 if (it.id == itemId) updatedItem else it 
             }
-            val updatedList = currentList.copy(items = updatedItems)
+            val updatedList = currentList.copy(
+                familyId = familyId, // Garantir familyId correto
+                items = updatedItems
+            )
             
             docRef.set(updatedList.toMap()).await()
             Result.success(Unit)
@@ -107,7 +113,10 @@ class ShoppingRepository(
             
             val currentList = ShoppingList.fromMap(doc.id, doc.data ?: emptyMap())
             val updatedItems = currentList.items.filter { it.id != itemId }
-            val updatedList = currentList.copy(items = updatedItems)
+            val updatedList = currentList.copy(
+                familyId = familyId, // Garantir familyId correto
+                items = updatedItems
+            )
             
             docRef.set(updatedList.toMap()).await()
             Result.success(Unit)
@@ -132,7 +141,10 @@ class ShoppingRepository(
             val updatedItems = currentList.items.map { item ->
                 if (item.id == itemId) item.copy(isChecked = !item.isChecked) else item
             }
-            val updatedList = currentList.copy(items = updatedItems)
+            val updatedList = currentList.copy(
+                familyId = familyId, // Garantir familyId correto
+                items = updatedItems
+            )
             
             docRef.set(updatedList.toMap()).await()
             Result.success(Unit)
@@ -161,6 +173,7 @@ class ShoppingRepository(
             
             // Criar entrada no histórico
             val completedList = currentList.copy(
+                familyId = familyId, // Garantir familyId correto
                 status = ListStatus.COMPLETED,
                 completedAt = Date()
             )

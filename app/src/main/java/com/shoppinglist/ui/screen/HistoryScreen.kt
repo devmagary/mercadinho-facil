@@ -24,8 +24,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
-    viewModel: HistoryViewModel = viewModel(),
-    onNavigateBack: () -> Unit
+    viewModel: HistoryViewModel = viewModel()
 ) {
     val historyList by viewModel.historyList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
