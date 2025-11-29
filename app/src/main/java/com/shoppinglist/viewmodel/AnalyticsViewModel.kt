@@ -55,8 +55,14 @@ class AnalyticsViewModel(
             val familyId = user?.familyId
 
             if (familyId != null) {
-                val history = shoppingRepository.getHistory(familyId)
-                calculateAnalytics(history)
+                val result = shoppingRepository.getHistory(familyId)
+                result.onSuccess { history ->
+                    calculateAnalytics(history)
+                }
+                result.onFailure {
+                    // Em caso de erro, lista vazia
+                    calculateAnalytics(emptyList())
+                }
             }
             _isLoading.value = false
         }

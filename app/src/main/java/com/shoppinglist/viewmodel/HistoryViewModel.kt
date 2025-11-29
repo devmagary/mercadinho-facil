@@ -44,8 +44,13 @@ class HistoryViewModel(
             val familyId = user?.familyId
 
             if (familyId != null) {
-                val history = shoppingRepository.getHistory(familyId)
-                _historyList.value = history
+                val result = shoppingRepository.getHistory(familyId)
+                result.onSuccess { history ->
+                    _historyList.value = history
+                }
+                result.onFailure { e ->
+                    _errorMessage.value = "Erro ao carregar histórico: ${e.message}"
+                }
             } else {
                 _errorMessage.value = "Família não encontrada"
             }

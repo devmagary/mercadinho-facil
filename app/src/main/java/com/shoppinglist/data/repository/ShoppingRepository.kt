@@ -195,7 +195,7 @@ class ShoppingRepository(
     /**
      * Busca o histórico de compras da família
      */
-    suspend fun getHistory(familyId: String): List<ShoppingList> {
+    suspend fun getHistory(familyId: String): Result<List<ShoppingList>> {
         return try {
             val snapshot = firestore.collection("history")
                 .whereEqualTo("familyId", familyId)
@@ -203,11 +203,12 @@ class ShoppingRepository(
                 .get()
                 .await()
             
-            snapshot.documents.map { doc ->
+            val list = snapshot.documents.map { doc ->
                 ShoppingList.fromMap(doc.id, doc.data ?: emptyMap())
             }
+            Result.success(list)
         } catch (e: Exception) {
-            emptyList()
+            Result.failure(e)
         }
     }
     
