@@ -67,6 +67,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     
     // Compose Navigation
     implementation("androidx.navigation:navigation-compose:2.7.5")
@@ -85,9 +86,6 @@ dependencies {
     
     // Accompanist (Permissions)
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
-    
-    // Charts (MPAndroidChart - opcional para analytics)
-    implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     
     // Testing
     testImplementation("junit:junit:4.13.2")

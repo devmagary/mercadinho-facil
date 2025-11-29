@@ -3,7 +3,7 @@ package com.shoppinglist.ui.components
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.outlined.Circle
+import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -42,7 +42,7 @@ fun ShoppingItemCard(
             // Checkbox
             IconButton(onClick = onCheckedChange) {
                 Icon(
-                    imageVector = if (item.isChecked) Icons.Filled.CheckCircle else Icons.Outlined.Circle,
+                    imageVector = if (item.isChecked) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
                     contentDescription = if (item.isChecked) "Marcado" else "Não marcado",
                     tint = if (item.isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                 )
