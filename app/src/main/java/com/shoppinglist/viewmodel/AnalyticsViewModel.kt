@@ -16,6 +16,7 @@ import java.util.Locale
  * Data class para representar análises por período
  */
 data class PeriodAnalytics(
+    val name: String?, // Nome da lista (se disponível)
     val date: String,
     val totalValue: Double,
     val itemCount: Int
@@ -77,7 +78,8 @@ class AnalyticsViewModel(
         // Criar lista de análises por data
         val analyticsList = history.map { list ->
             PeriodAnalytics(
-                date = list.completedAt?.let { dateFormat.format(it) } ?: "N/A",
+                name = list.name,
+                date = list.completedAt?.let { dateFormat.format(it) } ?: "Data desconhecida",
                 totalValue = list.totalValue,
                 itemCount = list.items.size
             )

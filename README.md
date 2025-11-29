@@ -6,12 +6,14 @@ Aplicativo Android para gerenciamento de listas de compras compartilhadas em tem
 
 - 🔐 **Autenticação de Usuários**: Sistema de login e registro com Firebase Authentication
 - 👨‍👩‍👧‍👦 **Sistema de Famílias**: Crie ou entre em famílias usando códigos de convite
+- 👤 **Perfil de Usuário**: Visualize seus dados e copie facilmente o código da família
 - ✅ **CRUD Completo**: Adicionar, editar, remover e marcar itens como comprados
+- 📝 **Listas Nomeadas**: Dê nomes personalizados às suas listas de compras
 - 🔄 **Sincronização em Tempo Real**: Firebase Firestore sincroniza automaticamente entre todos os dispositivos
 - 👨‍👩‍👧‍👦 **Compartilhamento Familiar**: Múltiplos usuários podem gerenciar a mesma lista
 - 📊 **Analytics**: Visualize estatísticas de gastos e histórico de compras
 - 🔁 **Histórico e Clonagem**: Clone compras anteriores com um toque
-- 🌓 **Dark Mode AMOLED**: Tema escuro otimizado para telas OLED (#000000)
+- 🌓 **Dark Mode AMOLED**: Tema escuro otimizado para telas OLED (#000000), com toggle nas configurações
 - 📸 **Suporte a Imagens**: Adicione fotos dos produtos (opcional)
 - 💰 **Controle de Gastos**: Acompanhe preços e calcule totais automaticamente
 
@@ -21,6 +23,7 @@ Aplicativo Android para gerenciamento de listas de compras compartilhadas em tem
 - **UI**: Jetpack Compose + Material Design 3
 - **Arquitetura**: MVVM (Model-View-ViewModel)
 - **Backend**: Firebase Firestore + Firebase Authentication
+- **Persistência Local**: DataStore Preferences (para configurações de tema)
 - **Navegação**: Navigation Compose
 - **Imagens**: Coil
 
@@ -41,7 +44,9 @@ app/src/main/java/com/shoppinglist/
 │   ├── AuthViewModel.kt         # ViewModel de autenticação
 │   ├── ShoppingListViewModel.kt # ViewModel principal
 │   ├── HistoryViewModel.kt      # ViewModel de histórico
-│   └── AnalyticsViewModel.kt    # ViewModel de analytics
+│   ├── AnalyticsViewModel.kt    # ViewModel de analytics
+│   ├── ProfileViewModel.kt      # ViewModel de perfil
+│   └── ThemeViewModel.kt        # ViewModel de tema
 ├── ui/
 │   ├── theme/                   # Tema Material 3
 │   │   ├── Color.kt
@@ -53,9 +58,11 @@ app/src/main/java/com/shoppinglist/
 │   │   ├── ShoppingListScreen.kt
 │   │   ├── HistoryScreen.kt
 │   │   ├── AnalyticsScreen.kt
+│   │   ├── ProfileScreen.kt
 │   │   └── AddEditItemDialog.kt
 │   ├── components/              # Componentes reutilizáveis
-│   │   └── ShoppingItemCard.kt
+│   │   ├── ShoppingItemCard.kt
+│   │   └── FinishShoppingDialog.kt
 │   └── navigation/
 │       ├── Screen.kt
 │       └── NavGraph.kt
@@ -115,15 +122,18 @@ O Android Studio deve sincronizar automaticamente. Se não:
 1. **Adicionar Item**: Toque no botão `+` flutuante
    - Preencha nome, quantidade, unidade
    - Opcional: adicione preço e URL de imagem
-2. **Marcar como Comprado**: Toque no círculo à esquerda do item
-3. **Editar Item**: Toque no ícone de lápis
-4. **Deletar Item**: Toque no ícone de lixeira
-5. **Finalizar Compra**: Toque em "Finalizar Compra" quando terminar
+2. **Nomear Lista**: Toque no campo de texto no topo para dar um nome à lista atual
+3. **Marcar como Comprado**: Toque no círculo à esquerda do item
+4. **Editar Item**: Toque no ícone de lápis
+5. **Deletar Item**: Toque no ícone de lixeira
+6. **Finalizar Compra**: Toque em "Finalizar Compra" quando terminar
+   - Se a lista já tiver nome, ele será mantido
+   - Se não tiver, você pode digitar um nome ou usar a data atual automaticamente
 
 ### Ver Histórico
 
 1. Navegue até a aba "Histórico"
-2. Veja todas as compras finalizadas com data e valor
+2. Veja todas as compras finalizadas com nome, data e valor
 3. Toque em "Repetir Compra" para clonar uma lista antiga
 
 ### Ver Analytics
@@ -134,6 +144,13 @@ O Android Studio deve sincronizar automaticamente. Se não:
    - Média por compra
    - Histórico detalhado por data
 
+### Gerenciar Perfil e Configurações
+
+1. Toque no ícone de perfil no canto superior direito da tela principal
+2. Visualize seus dados (Nome, Email)
+3. **Código da Família**: Copie o código de convite com um toque no botão de cópia
+4. **Tema**: Alterne entre Modo Claro e Escuro usando o switch
+
 ## 🎨 Temas
 
 O aplicativo suporta dois temas:
@@ -141,7 +158,7 @@ O aplicativo suporta dois temas:
 - **Light Mode**: Tema claro padrão do Material 3
 - **Dark Mode AMOLED**: Tema escuro com fundo preto puro (#000000) para economia de bateria em telas OLED
 
-O tema é detectado automaticamente com base nas configurações do sistema.
+O tema pode ser alternado manualmente na tela de Perfil e a preferência é salva automaticamente.
 
 ## 🔐 Segurança e Privacidade
 

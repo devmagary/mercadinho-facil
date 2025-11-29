@@ -11,6 +11,7 @@ data class ShoppingList(
     @DocumentId
     val id: String = "",
     val familyId: String = "",
+    val name: String? = null, // Nome personalizado da lista
     val items: List<ShoppingItem> = emptyList(),
     val status: ListStatus = ListStatus.ACTIVE,
     @ServerTimestamp
@@ -31,6 +32,7 @@ data class ShoppingList(
     fun toMap(): Map<String, Any?> {
         return mapOf(
             "familyId" to familyId,
+            "name" to name,
             "items" to items.map { it.toMap() },
             "status" to status.name,
             "createdAt" to createdAt,
@@ -48,13 +50,18 @@ data class ShoppingList(
                 ShoppingItem.fromMap(index.toString(), itemMap)
             } ?: emptyList()
             
+            val createdAtDate = (map["createdAt"] as? com.google.firebase.Timestamp)?.toDate() ?: map["createdAt"] as? Date
+            val completedAtDate = (map["completedAt"] as? com.google.firebase.Timestamp)?.toDate() ?: map["completedAt"] as? Date
+            
             return ShoppingList(
                 id = id,
                 familyId = map["familyId"] as? String ?: "",
+                name = map["name"] as? String,
                 items = itemsList,
                 status = ListStatus.valueOf(map["status"] as? String ?: "ACTIVE"),
-                createdAt = map["createdAt"] as? Date,
-                completedAt = map["completedAt"] as? Date,
+                createdAt = createdAtDate,
+                // Se completedAt for null mas status é COMPLETED, usar createdAt como fallback
+                completedAt = completedAtDate ?: (if (map["status"] == "COMPLETED") createdAtDate else null),
                 totalValue = (map["totalValue"] as? Number)?.toDouble() ?: 0.0
             )
         }

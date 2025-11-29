@@ -212,6 +212,7 @@ Histórico de compras finalizadas
 ```json
 {
   "familyId": "family123",
+  "name": "Compra Semanal",
   "items": [...],
   "status": "COMPLETED",
   "createdAt": "timestamp",

@@ -161,4 +161,23 @@ class AuthRepository {
             Result.failure(e)
         }
     }
+    /**
+     * Busca dados da família pelo ID
+     */
+    suspend fun getFamily(familyId: String): Family? {
+        return try {
+            val doc = firestore.collection("families")
+                .document(familyId)
+                .get()
+                .await()
+            
+            if (doc.exists()) {
+                Family.fromMap(doc.id, doc.data ?: emptyMap())
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
 }

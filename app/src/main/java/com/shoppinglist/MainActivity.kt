@@ -10,6 +10,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.shoppinglist.ui.navigation.NavGraph
 import com.shoppinglist.ui.theme.ShoppingListTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 /**
  * MainActivity - Ponto de entrada do aplicativo
@@ -20,12 +22,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         setContent {
-            ShoppingListTheme {
+            val themeViewModel: com.shoppinglist.viewmodel.ThemeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
+            
+            ShoppingListTheme(
+                darkTheme = isDarkTheme ?: androidx.compose.foundation.isSystemInDarkTheme()
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    NavGraph()
+                    NavGraph(themeViewModel = themeViewModel)
                 }
             }
         }

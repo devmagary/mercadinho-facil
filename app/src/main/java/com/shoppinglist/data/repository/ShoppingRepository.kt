@@ -156,7 +156,7 @@ class ShoppingRepository(
     /**
      * Finaliza a compra atual e move para o histórico
      */
-    suspend fun finishShopping(familyId: String): Result<Unit> {
+    suspend fun finishShopping(familyId: String, listName: String?): Result<Unit> {
         return try {
             val currentDocRef = firestore.collection("currentLists").document(familyId)
             val doc = currentDocRef.get().await()
@@ -171,15 +171,29 @@ class ShoppingRepository(
                 return Result.failure(Exception("Lista está vazia"))
             }
             
-            // Criar entrada no histórico
+            // Calcular o total dos itens
+            val totalValue = currentList.calculateTotal()
+            
+            // Criar entrada no histórico com data de conclusão
+            val completedAt = Date()
             val completedList = currentList.copy(
                 familyId = familyId, // Garantir familyId correto
-                status = ListStatus.COMPLETED
+                name = listName, // Nome fornecido pelo usuário
+                status = ListStatus.COMPLETED,
+                completedAt = completedAt
             )
             
-            // Salvar no histórico com timestamp do servidor
+            // Debug: Verificar valores antes de salvar
+            android.util.Log.d("ShoppingRepository", "Salvando histórico:")
+            android.util.Log.d("ShoppingRepository", "- Nome: $listName")
+            android.util.Log.d("ShoppingRepository", "- CompletedAt: $completedAt")
+            android.util.Log.d("ShoppingRepository", "- Total: $totalValue")
+            
+            // Salvar no histórico com total calculado
             val historyData = completedList.toMap().toMutableMap()
-            historyData["completedAt"] = com.google.firebase.firestore.FieldValue.serverTimestamp()
+            historyData["totalValue"] = totalValue // Sobrescrever com o total real
+            
+            android.util.Log.d("ShoppingRepository", "HistoryData map: $historyData")
             
             firestore.collection("history")
                 .add(historyData)
@@ -189,6 +203,31 @@ class ShoppingRepository(
             val emptyList = ShoppingList(id = familyId, familyId = familyId)
             currentDocRef.set(emptyList.toMap()).await()
             
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Atualiza o nome da lista atual
+     */
+    suspend fun updateListName(familyId: String, name: String?): Result<Unit> {
+        return try {
+            val docRef = firestore.collection("currentLists").document(familyId)
+            val doc = docRef.get().await()
+            
+            if (!doc.exists()) {
+                return Result.failure(Exception("Lista não encontrada"))
+            }
+            
+            val currentList = ShoppingList.fromMap(doc.id, doc.data ?: emptyMap())
+            val updatedList = currentList.copy(
+                familyId = familyId,
+                name = name
+            )
+            
+            docRef.set(updatedList.toMap()).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

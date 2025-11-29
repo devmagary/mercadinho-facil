@@ -141,14 +141,14 @@ class ShoppingListViewModel(
     /**
      * Finaliza a compra atual
      */
-    fun finishShopping() {
+    fun finishShopping(listName: String?) {
         viewModelScope.launch {
             _isLoading.value = true
             val user = authRepository.getCurrentUser()
             val familyId = user?.familyId
 
             if (familyId != null) {
-                val result = shoppingRepository.finishShopping(familyId)
+                val result = shoppingRepository.finishShopping(familyId, listName)
                 result.onSuccess {
                     _successMessage.value = "Compra finalizada com sucesso!"
                 }
@@ -157,6 +157,23 @@ class ShoppingListViewModel(
                 }
             }
             _isLoading.value = false
+        }
+    }
+
+    /**
+     * Atualiza o nome da lista atual
+     */
+    fun updateListName(name: String?) {
+        viewModelScope.launch {
+            val user = authRepository.getCurrentUser()
+            val familyId = user?.familyId
+
+            if (familyId != null) {
+                val result = shoppingRepository.updateListName(familyId, name)
+                result.onFailure { e ->
+                    _errorMessage.value = e.message ?: "Erro ao atualizar nome da lista"
+                }
+            }
         }
     }
 

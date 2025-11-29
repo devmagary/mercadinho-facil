@@ -48,7 +48,7 @@ captures/
 # Google Services (e.g. APIs or Firebase)
 # google-services.json is usually ignored for open source, but for private projects it might be committed. 
 # However, it contains sensitive info (API keys), so it's safer to ignore and document how to get it.
-# google-services.json
+google-services.json
 
 # Visual Studio Code
 .vscode/

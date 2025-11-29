@@ -3,6 +3,7 @@ package com.shoppinglist.ui.navigation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
@@ -20,7 +21,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.shoppinglist.ui.screen.AnalyticsScreen
 import com.shoppinglist.ui.screen.HistoryScreen
+import com.shoppinglist.ui.screen.ProfileScreen
 import com.shoppinglist.ui.screen.ShoppingListScreen
+import com.shoppinglist.viewmodel.ThemeViewModel
 
 /**
  * Item da barra de navegação inferior
@@ -36,7 +39,8 @@ data class BottomNavItem(
  */
 @Composable
 fun NavGraph(
-    authViewModel: com.shoppinglist.viewmodel.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+    authViewModel: com.shoppinglist.viewmodel.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    themeViewModel: ThemeViewModel
 ) {
     val navController = rememberNavController()
     val currentUser by authViewModel.currentUser.collectAsState()
@@ -97,7 +101,7 @@ fun NavGraph(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Login.route, // Sempre inicia configurado, mas o LaunchedEffect abaixo redireciona
+            startDestination = startDestination,
             modifier = Modifier.padding(innerPadding)
         ) {
             composable(Screen.Login.route) {
@@ -139,11 +143,8 @@ fun NavGraph(
                 }
                 
                 ShoppingListScreen(
-                    onNavigateToHistory = {
-                        navController.navigate(Screen.History.route)
-                    },
-                    onNavigateToAnalytics = {
-                        navController.navigate(Screen.Analytics.route)
+                    onNavigateToProfile = {
+                        navController.navigate(Screen.Profile.route)
                     }
                 )
             }
@@ -154,6 +155,19 @@ fun NavGraph(
             
             composable(Screen.Analytics.route) {
                 AnalyticsScreen()
+            }
+            
+            composable(Screen.Profile.route) {
+                ProfileScreen(
+                    onNavigateBack = { navController.popBackStack() },
+                    onLogout = {
+                        authViewModel.logout()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0)
+                        }
+                    },
+                    themeViewModel = themeViewModel
+                )
             }
         }
     }

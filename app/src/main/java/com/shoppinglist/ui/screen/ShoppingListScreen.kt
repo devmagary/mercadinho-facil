@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shoppinglist.data.model.ShoppingItem
+import com.shoppinglist.ui.components.FinishShoppingDialog
 import com.shoppinglist.ui.components.ShoppingItemCard
 import com.shoppinglist.viewmodel.ShoppingListViewModel
 
@@ -24,8 +26,7 @@ import com.shoppinglist.viewmodel.ShoppingListViewModel
 @Composable
 fun ShoppingListScreen(
     viewModel: ShoppingListViewModel = viewModel(),
-    onNavigateToHistory: () -> Unit,
-    onNavigateToAnalytics: () -> Unit
+    onNavigateToProfile: () -> Unit
 ) {
     val currentList by viewModel.currentList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -56,6 +57,11 @@ fun ShoppingListScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Lista de Compras") },
+                actions = {
+                    IconButton(onClick = onNavigateToProfile) {
+                        Icon(Icons.Filled.Person, contentDescription = "Perfil")
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
@@ -75,6 +81,28 @@ fun ShoppingListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            // Campo para nomear a lista
+            var listName by remember { mutableStateOf(currentList?.name ?: "") }
+            
+            OutlinedTextField(
+                value = listName,
+                onValueChange = { 
+                    listName = it
+                    viewModel.updateListName(it.ifBlank { null })
+                },
+                label = { Text("Nome da Lista") },
+                placeholder = { Text("Minha Lista") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                singleLine = true
+            )
+            
+            // Atualizar quando a lista mudar
+            LaunchedEffect(currentList?.name) {
+                listName = currentList?.name ?: ""
+            }
+            
             // Botão para finalizar compra
             if (currentList?.items?.isNotEmpty() == true) {
                 Button(
@@ -192,26 +220,14 @@ fun ShoppingListScreen(
         )
     }
 
-    // Dialog de confirmação para finalizar compra
+    // Dialog para finalizar compra com opção de nomear
     if (showFinishDialog) {
-        AlertDialog(
-            onDismissRequest = { showFinishDialog = false },
-            title = { Text("Finalizar Compra") },
-            text = { Text("Deseja finalizar esta compra? A lista será salva no histórico e uma nova lista será criada.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        viewModel.finishShopping()
-                        showFinishDialog = false
-                    }
-                ) {
-                    Text("Finalizar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showFinishDialog = false }) {
-                    Text("Cancelar")
-                }
+        FinishShoppingDialog(
+            currentName = currentList?.name,
+            onDismiss = { showFinishDialog = false },
+            onConfirm = { listName ->
+                viewModel.finishShopping(listName)
+                showFinishDialog = false
             }
         )
     }

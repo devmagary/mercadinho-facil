@@ -170,10 +170,24 @@ fun AnalyticsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
+                                // Nome da lista (se disponível e não vazio) ou data
                                 Text(
-                                    text = periodAnalytics.date,
+                                    text = if (!periodAnalytics.name.isNullOrBlank()) {
+                                        periodAnalytics.name
+                                    } else {
+                                        periodAnalytics.date
+                                    },
                                     style = MaterialTheme.typography.titleMedium
                                 )
+                                // Data como subtítulo (se houver nome)
+                                if (!periodAnalytics.name.isNullOrBlank()) {
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Text(
+                                        text = periodAnalytics.date,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = "${periodAnalytics.itemCount} itens",

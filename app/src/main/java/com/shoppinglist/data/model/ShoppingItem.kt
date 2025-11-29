@@ -54,7 +54,7 @@ data class ShoppingItem(
                 price = (map["price"] as? Number)?.toDouble(),
                 imageUrl = map["imageUrl"] as? String,
                 isChecked = map["isChecked"] as? Boolean ?: false,
-                createdAt = map["createdAt"] as? Date
+                createdAt = (map["createdAt"] as? com.google.firebase.Timestamp)?.toDate() ?: map["createdAt"] as? Date
             )
         }
     }

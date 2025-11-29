@@ -128,12 +128,26 @@ fun HistoryItemCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Data
+            // Nome da lista (se disponível e não vazio) ou data como título
             Text(
-                text = shoppingList.completedAt?.let { dateFormat.format(it) } ?: "Data desconhecida",
+                text = if (!shoppingList.name.isNullOrBlank()) {
+                    shoppingList.name
+                } else {
+                    shoppingList.completedAt?.let { dateFormat.format(it) } ?: "Data desconhecida"
+                },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
+            
+            // Data como subtítulo (se houver nome personalizado)
+            if (!shoppingList.name.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = shoppingList.completedAt?.let { dateFormat.format(it) } ?: "Data desconhecida",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
