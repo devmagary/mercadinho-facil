@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
+    onDeleteAccount: () -> Unit,
     profileViewModel: ProfileViewModel = viewModel(),
     themeViewModel: ThemeViewModel
 ) {
@@ -32,6 +33,31 @@ fun ProfileScreen(
     
     val clipboardManager = LocalClipboardManager.current
     var showCopyMessage by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Apagar Conta") },
+            text = { Text("Tem certeza que deseja apagar sua conta? Esta ação é irreversível e seus dados serão perdidos.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteDialog = false
+                        onDeleteAccount()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Apagar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -196,12 +222,23 @@ fun ProfileScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
+                        contentColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
                     Icon(Icons.Filled.Logout, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Sair")
+                }
+
+                // Delete Account Button
+                Button(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Apagar Conta")
                 }
             }
         }

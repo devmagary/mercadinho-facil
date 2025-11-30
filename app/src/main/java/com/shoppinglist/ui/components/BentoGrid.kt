@@ -184,6 +184,8 @@ fun QuickActionWidget(
         onClick = onClick,
         shape = RoundedCornerShape(24.dp),
         color = color,
+        contentColor = if (color == MaterialTheme.colorScheme.secondary) MaterialTheme.colorScheme.onSecondary 
+                       else MaterialTheme.colorScheme.onPrimary, // Garante contraste usando cores 'On'
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp)
@@ -198,14 +200,12 @@ fun QuickActionWidget(
             Icon(
                 imageVector = icon,
                 contentDescription = title,
-                tint = Color.White,
                 modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
-                color = Color.White,
                 fontWeight = FontWeight.Bold
             )
         }

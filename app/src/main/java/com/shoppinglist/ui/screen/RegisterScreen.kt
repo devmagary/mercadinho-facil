@@ -1,7 +1,9 @@
 package com.shoppinglist.ui.screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -10,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -61,126 +64,156 @@ fun RegisterScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Nome Completo") },
-                leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Senha") },
-                leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
-                            contentDescription = if (passwordVisible) "Ocultar senha" else "Mostrar senha"
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.surface,
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                         )
-                    }
-                },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true
-            )
-
-            Divider(modifier = Modifier.padding(vertical = 8.dp))
-
-            // Seletor de modo (Criar ou Entrar)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                FilterChip(
-                    selected = !isJoiningFamily,
-                    onClick = { isJoiningFamily = false },
-                    label = { Text("Criar Família") },
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-                FilterChip(
-                    selected = isJoiningFamily,
-                    onClick = { isJoiningFamily = true },
-                    label = { Text("Entrar com Código") }
-                )
-            }
-
-            if (isJoiningFamily) {
-                OutlinedTextField(
-                    value = inviteCode,
-                    onValueChange = { inviteCode = it },
-                    label = { Text("Código do Convite") },
-                    leadingIcon = { Icon(Icons.Filled.VpnKey, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    supportingText = { Text("Peça o código para o administrador da família") }
-                )
-            } else {
-                OutlinedTextField(
-                    value = familyName,
-                    onValueChange = { familyName = it },
-                    label = { Text("Nome da Família (Opcional)") },
-                    leadingIcon = { Icon(Icons.Filled.Home, contentDescription = null) },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    placeholder = { Text("Ex: Família Silva") }
-                )
-            }
-
-            if (error != null) {
-                Text(
-                    text = error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            Button(
-                onClick = { 
-                    viewModel.register(
-                        name, 
-                        email, 
-                        password, 
-                        if (!isJoiningFamily) familyName.ifBlank { null } else null,
-                        if (isJoiningFamily) inviteCode else null
-                    ) 
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                enabled = !isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank() && 
-                         (!isJoiningFamily || inviteCode.isNotBlank())
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(24.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
                     )
-                } else {
-                    Text("Criar Conta")
+                )
+                .padding(paddingValues)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = name,
+                            onValueChange = { name = it },
+                            label = { Text("Nome Completo") },
+                            leadingIcon = { Icon(Icons.Filled.Person, contentDescription = null) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = { Text("Email") },
+                            leadingIcon = { Icon(Icons.Filled.Email, contentDescription = null) },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = { Text("Senha") },
+                            leadingIcon = { Icon(Icons.Filled.Lock, contentDescription = null) },
+                            trailingIcon = {
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(
+                                        if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                                        contentDescription = if (passwordVisible) "Ocultar senha" else "Mostrar senha"
+                                    )
+                                }
+                            },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                        // Seletor de modo (Criar ou Entrar)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            FilterChip(
+                                selected = !isJoiningFamily,
+                                onClick = { isJoiningFamily = false },
+                                label = { Text("Criar Família") },
+                                modifier = Modifier.padding(end = 8.dp)
+                            )
+                            FilterChip(
+                                selected = isJoiningFamily,
+                                onClick = { isJoiningFamily = true },
+                                label = { Text("Entrar com Código") }
+                            )
+                        }
+
+                        if (isJoiningFamily) {
+                            OutlinedTextField(
+                                value = inviteCode,
+                                onValueChange = { inviteCode = it },
+                                label = { Text("Código do Convite") },
+                                leadingIcon = { Icon(Icons.Filled.VpnKey, contentDescription = null) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                supportingText = { Text("Peça o código para o administrador da família") },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        } else {
+                            OutlinedTextField(
+                                value = familyName,
+                                onValueChange = { familyName = it },
+                                label = { Text("Nome da Família (Opcional)") },
+                                leadingIcon = { Icon(Icons.Filled.Home, contentDescription = null) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true,
+                                placeholder = { Text("Ex: Família Silva") },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+
+                        if (error != null) {
+                            Text(
+                                text = error!!,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        Button(
+                            onClick = { 
+                                viewModel.register(
+                                    name, 
+                                    email, 
+                                    password, 
+                                    if (!isJoiningFamily) familyName.ifBlank { null } else null,
+                                    if (isJoiningFamily) inviteCode else null
+                                ) 
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            enabled = !isLoading && name.isNotBlank() && email.isNotBlank() && password.isNotBlank() && 
+                                     (!isJoiningFamily || inviteCode.isNotBlank()),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            if (isLoading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            } else {
+                                Text("Criar Conta")
+                            }
+                        }
+                    }
                 }
             }
         }

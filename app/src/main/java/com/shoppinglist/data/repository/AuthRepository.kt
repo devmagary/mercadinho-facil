@@ -180,4 +180,40 @@ class AuthRepository {
             null
         }
     }
+
+    /**
+     * Envia email de recuperação de senha
+     */
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Deleta a conta do usuário
+     */
+    suspend fun deleteAccount(): Result<Unit> {
+        val user = auth.currentUser ?: return Result.failure(Exception("Usuário não autenticado"))
+        val userId = user.uid
+
+        return try {
+            // 1. Deletar dados do Firestore
+            firestore.collection("users").document(userId).delete().await()
+            
+            // Tentar remover da família (opcional, melhor esforço)
+            // Isso seria ideal, mas requer saber o familyId atual.
+            // Como simplificação, deletamos o usuário.
+            
+            // 2. Deletar usuário do Auth
+            user.delete().await()
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

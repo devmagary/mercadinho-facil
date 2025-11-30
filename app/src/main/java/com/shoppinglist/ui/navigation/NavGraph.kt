@@ -1,9 +1,12 @@
 package com.shoppinglist.ui.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assessment
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
@@ -47,7 +50,6 @@ fun NavGraph(
     val isLoading by authViewModel.isLoading.collectAsState()
     
     // Determina o destino inicial com base no estado de autenticação
-    // Nota: Em um app real, idealmente usaríamos um Splash Screen enquanto carrega
     val startDestination = if (currentUser != null) Screen.ShoppingList.route else Screen.Login.route
     
     val navItems = listOf(
@@ -74,23 +76,25 @@ fun NavGraph(
             val currentDestination = navBackStackEntry?.destination
             val currentRoute = currentDestination?.route
             
-            // Só mostra a barra de navegação se estiver logado e não estiver nas telas de auth
             if (currentUser != null && 
                 currentRoute != Screen.Login.route && 
-                currentRoute != Screen.Register.route) {
+                currentRoute != Screen.Register.route &&
+                currentRoute != Screen.ForgotPassword.route) {
                 NavigationBar {
                     navItems.forEach { item ->
                         NavigationBarItem(
                             icon = { Icon(item.icon, contentDescription = item.label) },
                             label = { Text(item.label) },
-                            selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                            selected = currentRoute == item.route,
                             onClick = {
-                                navController.navigate(item.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                                if (currentRoute != item.route) {
+                                    navController.navigate(item.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
                             }
                         )
@@ -102,12 +106,39 @@ fun NavGraph(
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding),
+            enterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            },
+            popEnterTransition = {
+                slideIntoContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300)
+                ) + fadeIn(animationSpec = tween(300))
+            },
+            popExitTransition = {
+                slideOutOfContainer(
+                    AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300)
+                ) + fadeOut(animationSpec = tween(300))
+            }
         ) {
             composable(Screen.Login.route) {
                 com.shoppinglist.ui.screen.LoginScreen(
                     onNavigateToRegister = {
                         navController.navigate(Screen.Register.route)
+                    },
+                    onNavigateToForgotPassword = {
+                        navController.navigate(Screen.ForgotPassword.route)
                     },
                     onLoginSuccess = {
                         navController.navigate(Screen.ShoppingList.route) {
@@ -132,8 +163,16 @@ fun NavGraph(
                 )
             }
 
+            composable(Screen.ForgotPassword.route) {
+                com.shoppinglist.ui.screen.ForgotPasswordScreen(
+                    onNavigateBack = {
+                        navController.popBackStack()
+                    },
+                    viewModel = authViewModel
+                )
+            }
+
             composable(Screen.ShoppingList.route) {
-                // Se não tiver usuário, força volta pro login (segurança extra)
                 if (currentUser == null && !isLoading) {
                     LaunchedEffect(Unit) {
                         navController.navigate(Screen.Login.route) {
@@ -162,6 +201,12 @@ fun NavGraph(
                     onNavigateBack = { navController.popBackStack() },
                     onLogout = {
                         authViewModel.logout()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0)
+                        }
+                    },
+                    onDeleteAccount = {
+                        authViewModel.deleteAccount()
                         navController.navigate(Screen.Login.route) {
                             popUpTo(0)
                         }

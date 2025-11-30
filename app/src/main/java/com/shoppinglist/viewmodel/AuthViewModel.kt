@@ -25,6 +25,9 @@ class AuthViewModel(
     private val _authSuccess = MutableStateFlow(false)
     val authSuccess: StateFlow<Boolean> = _authSuccess.asStateFlow()
 
+    private val _passwordResetSent = MutableStateFlow(false)
+    val passwordResetSent: StateFlow<Boolean> = _passwordResetSent.asStateFlow()
+
     init {
         checkCurrentUser()
     }
@@ -116,5 +119,48 @@ class AuthViewModel(
     
     fun resetAuthSuccess() {
         _authSuccess.value = false
+    }
+
+    fun forgotPassword(email: String) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val result = repository.sendPasswordResetEmail(email)
+                if (result.isSuccess) {
+                    _passwordResetSent.value = true
+                } else {
+                    _error.value = "Falha ao enviar email: ${result.exceptionOrNull()?.message}"
+                }
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Erro ao enviar email de recuperação"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun resetPasswordResetSent() {
+        _passwordResetSent.value = false
+    }
+
+    fun deleteAccount() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val result = repository.deleteAccount()
+                if (result.isSuccess) {
+                    _currentUser.value = null
+                    _authSuccess.value = false // Ensure we are logged out state
+                } else {
+                    _error.value = "Falha ao deletar conta: ${result.exceptionOrNull()?.message}"
+                }
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Erro ao deletar conta"
+            } finally {
+                _isLoading.value = false
+            }
+        }
     }
 }

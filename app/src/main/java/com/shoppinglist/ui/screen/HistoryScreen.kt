@@ -14,6 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shoppinglist.data.model.ShoppingList
+import com.shoppinglist.ui.components.GlassCard
 import com.shoppinglist.viewmodel.HistoryViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -119,9 +120,8 @@ fun HistoryItemCard(
 ) {
     val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy - HH:mm", Locale.getDefault()) }
 
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    GlassCard(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(
             modifier = Modifier

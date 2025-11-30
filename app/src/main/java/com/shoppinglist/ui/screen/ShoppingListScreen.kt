@@ -1,5 +1,6 @@
 package com.shoppinglist.ui.screen
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -31,8 +33,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -46,7 +50,7 @@ import com.shoppinglist.ui.components.GlassTopBar
 import com.shoppinglist.ui.components.ShoppingItemCard
 import com.shoppinglist.viewmodel.ShoppingListViewModel
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ShoppingListScreen(
     viewModel: ShoppingListViewModel = viewModel(),
@@ -61,6 +65,19 @@ fun ShoppingListScreen(
     var itemToEdit by remember { mutableStateOf<ShoppingItem?>(null) }
     var showEditDialog by remember { mutableStateOf(false) }
     var showFinishDialog by remember { mutableStateOf(false) }
+
+    // Estado local para o nome da lista para evitar recomposições durante a digitação
+    // Usamos o nome da lista atual ou uma string vazia como padrão
+    val initialName = currentList?.name ?: ""
+    var listName by rememberSaveable(initialName) { mutableStateOf(initialName) }
+
+    // Atualizar listName se currentList mudar externamente
+    LaunchedEffect(currentList?.name) {
+        // Só atualiza se for diferente e não nulo
+        if (currentList?.name != null && currentList?.name != listName) {
+            listName = currentList?.name ?: ""
+        }
+    }
 
     // Mostrar mensagens
     LaunchedEffect(errorMessage) {
@@ -80,12 +97,18 @@ fun ShoppingListScreen(
             GlassTopBar(
                 title = {
                     OutlinedTextField(
-                        value = currentList?.name ?: "",
-                        onValueChange = { newName ->
-                            viewModel.updateListName(newName.ifBlank { null })
+                        value = listName,
+                        onValueChange = { 
+                            listName = it
                         },
                         placeholder = { Text("Nome da lista (ex: Churrasco)") },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onFocusChanged { focusState ->
+                                if (!focusState.isFocused && listName != currentList?.name) {
+                                    viewModel.updateListName(listName.ifBlank { null })
+                                }
+                            },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color.Transparent,
@@ -109,7 +132,7 @@ fun ShoppingListScreen(
             FloatingActionButton(
                 onClick = { showAddDialog = true },
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = Color.White,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Adicionar Item")
@@ -131,14 +154,14 @@ fun ShoppingListScreen(
                     items = items,
                     totalEstimated = totalEstimated,
                     onAddItem = { showAddDialog = true },
-                    onViewAnalytics = { showFinishDialog = true } // Temporarily mapped to finish dialog as quick action
+                    onViewAnalytics = { showFinishDialog = true }
                 )
             }
 
             // Shopping List
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    androidx.compose.material3.CircularProgressIndicator()
+                    CircularProgressIndicator()
                 }
             } else if (items.isEmpty()) {
                 Box(
@@ -169,19 +192,21 @@ fun ShoppingListScreen(
                     modifier = Modifier.fillMaxSize()
                 ) {
                     items(items, key = { it.id }) { item ->
-                        ShoppingItemCard(
-                            item = item,
-                            onCheckedChange = { _ ->
-                                viewModel.toggleItemChecked(item.id)
-                            },
-                            onEditClick = {
-                                itemToEdit = item
-                                showEditDialog = true
-                            },
-                            onDeleteClick = {
-                                viewModel.deleteItem(item.id)
-                            }
-                        )
+                        Box(modifier = Modifier.animateItemPlacement()) {
+                            ShoppingItemCard(
+                                item = item,
+                                onCheckedChange = { _ ->
+                                    viewModel.toggleItemChecked(item.id)
+                                },
+                                onEditClick = {
+                                    itemToEdit = item
+                                    showEditDialog = true
+                                },
+                                onDeleteClick = {
+                                    viewModel.deleteItem(item.id)
+                                }
+                            )
+                        }
                     }
                 }
             }

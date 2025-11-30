@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -24,9 +25,15 @@ import com.patrykandpatrick.vico.compose.axis.horizontal.rememberBottomAxis
 import com.patrykandpatrick.vico.compose.axis.vertical.rememberStartAxis
 import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.column.columnChart
+import com.patrykandpatrick.vico.compose.component.lineComponent
+import com.patrykandpatrick.vico.compose.component.shapeComponent
+import com.patrykandpatrick.vico.core.component.shape.Shapes
+import com.patrykandpatrick.vico.core.entry.entryModelOf
 import com.patrykandpatrick.vico.core.entry.entryOf
 import com.shoppinglist.ui.components.GlassCard
 import com.shoppinglist.viewmodel.AnalyticsViewModel
+
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun AnalyticsScreen(
@@ -35,6 +42,11 @@ fun AnalyticsScreen(
     val analytics by viewModel.analytics.collectAsState()
     val totalSpent by viewModel.totalSpent.collectAsState()
     val averagePerShopping by viewModel.averagePerShopping.collectAsState()
+
+    // Recarregar dados sempre que a tela for exibida
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
@@ -118,6 +130,13 @@ fun AnalyticsScreen(
 
         item {
             if (analytics.isNotEmpty()) {
+                val chartEntries = analytics.mapIndexed { index, period ->
+                    entryOf(index.toFloat(), period.totalValue.toFloat())
+                }
+                val chartEntryModel = entryModelOf(chartEntries)
+                
+                val primaryColor = MaterialTheme.colorScheme.primary
+
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -125,13 +144,17 @@ fun AnalyticsScreen(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                 ) {
-                    val chartEntries = analytics.mapIndexed { index, period ->
-                        entryOf(index, period.totalValue)
-                    }
-                    
                     Chart(
-                        chart = columnChart(),
-                        model = com.patrykandpatrick.vico.core.entry.entryModelOf(chartEntries),
+                        chart = columnChart(
+                            columns = listOf(
+                                lineComponent(
+                                    color = primaryColor,
+                                    thickness = 16.dp,
+                                    shape = Shapes.roundedCornerShape(allPercent = 40)
+                                )
+                            )
+                        ),
+                        model = chartEntryModel,
                         startAxis = rememberStartAxis(),
                         bottomAxis = rememberBottomAxis(),
                         modifier = Modifier
