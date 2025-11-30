@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shoppinglist.viewmodel.ProfileViewModel
 import com.shoppinglist.viewmodel.ThemeViewModel
+import com.shoppinglist.ui.components.GlassTopBar
+import com.shoppinglist.ui.components.GlassCard
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,7 +24,7 @@ import kotlinx.coroutines.delay
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
-    onDeleteAccount: () -> Unit,
+    onDeleteAccount: (String) -> Unit,
     profileViewModel: ProfileViewModel = viewModel(),
     themeViewModel: ThemeViewModel
 ) {
@@ -34,6 +36,72 @@ fun ProfileScreen(
     val clipboardManager = LocalClipboardManager.current
     var showCopyMessage by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var showPasswordDialog by remember { mutableStateOf(false) }
+    var deletePassword by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf(false) }
+
+    // Password confirmation dialog
+    if (showPasswordDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showPasswordDialog = false 
+                deletePassword = ""
+                passwordError = false
+            },
+            title = { Text("Confirmar Exclusão") },
+            text = {
+                Column {
+                    Text("Por segurança, digite sua senha para confirmar a exclusão da conta:")
+                    Spacer(modifier = Modifier.height(16.dp))
+                    OutlinedTextField(
+                        value = deletePassword,
+                        onValueChange = { 
+                            deletePassword = it
+                            passwordError = false
+                        },
+                        label = { Text("Senha") },
+                        singleLine = true,
+                        isError = passwordError,
+                        visualTransformation = androidx.compose.ui.text.input.PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (passwordError) {
+                        Text(
+                            text = "Senha incorreta",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (deletePassword.isNotBlank()) {
+                            showPasswordDialog = false
+                            onDeleteAccount(deletePassword)
+                            deletePassword = ""
+                        } else {
+                            passwordError = true
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Confirmar Exclusão")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { 
+                    showPasswordDialog = false
+                    deletePassword = ""
+                    passwordError = false
+                }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -44,7 +112,7 @@ fun ProfileScreen(
                 Button(
                     onClick = {
                         showDeleteDialog = false
-                        onDeleteAccount()
+                        showPasswordDialog = true
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
                 ) {
@@ -61,17 +129,13 @@ fun ProfileScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            GlassTopBar(
                 title = { Text("Perfil") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                }
             )
         }
     ) { paddingValues ->
@@ -88,11 +152,8 @@ fun ProfileScreen(
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
                 // User Info Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                GlassCard(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -115,11 +176,8 @@ fun ProfileScreen(
                 }
 
                 // Family Info Card
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
-                    )
+                GlassCard(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp),
@@ -128,12 +186,12 @@ fun ProfileScreen(
                         Text(
                             text = "Família",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = family?.name ?: "Carregando...",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         
                         Divider(modifier = Modifier.padding(vertical = 8.dp))
@@ -147,12 +205,12 @@ fun ProfileScreen(
                                 Text(
                                     text = "Código de Convite",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Text(
                                     text = family?.inviteCode ?: "...",
                                     style = MaterialTheme.typography.headlineSmall,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    color = MaterialTheme.colorScheme.onSurface
                                 )
                             }
                             IconButton(
@@ -166,7 +224,7 @@ fun ProfileScreen(
                                 Icon(
                                     Icons.Filled.ContentCopy, 
                                     contentDescription = "Copiar Código",
-                                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }
@@ -186,7 +244,7 @@ fun ProfileScreen(
                 }
 
                 // Settings Card
-                Card(
+                GlassCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(

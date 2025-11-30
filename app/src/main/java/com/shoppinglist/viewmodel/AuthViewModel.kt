@@ -144,11 +144,20 @@ class AuthViewModel(
         _passwordResetSent.value = false
     }
 
-    fun deleteAccount() {
+    fun deleteAccount(password: String) {
         viewModelScope.launch {
             _isLoading.value = true
             _error.value = null
             try {
+                // First reauthenticate
+                val reauthResult = repository.reauthenticate(password)
+                if (reauthResult.isFailure) {
+                    _error.value = "Senha incorreta. Por favor, tente novamente."
+                    _isLoading.value = false
+                    return@launch
+                }
+                
+                // Then delete account
                 val result = repository.deleteAccount()
                 if (result.isSuccess) {
                     _currentUser.value = null

@@ -1,6 +1,7 @@
 package com.shoppinglist.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.clickable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Box
@@ -49,25 +50,22 @@ fun ShoppingItemCard(
         label = "bgColor"
     )
 
-    Card(
+    GlassCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp, horizontal = 16.dp)
             .alpha(alpha),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = if (!item.isChecked) BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)) else null
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
+                .clickable { onCheckedChange(!item.isChecked) }
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Custom Checkbox/Avatar
             Surface(
-                onClick = { onCheckedChange(!item.isChecked) },
                 shape = CircleShape,
                 color = if (item.isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
                 modifier = Modifier.size(48.dp)

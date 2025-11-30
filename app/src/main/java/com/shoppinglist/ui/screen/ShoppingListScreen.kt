@@ -122,8 +122,16 @@ fun ShoppingListScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToProfile) {
-                        Icon(Icons.Filled.Person, contentDescription = "Perfil")
+                    com.shoppinglist.ui.components.GlassCard(
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        IconButton(onClick = onNavigateToProfile) {
+                            Icon(
+                                Icons.Filled.Person, 
+                                contentDescription = "Perfil",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             )
@@ -217,7 +225,10 @@ fun ShoppingListScreen(
     if (showAddDialog) {
         AddEditItemDialog(
             onDismiss = { showAddDialog = false },
-            onSave = { item -> viewModel.addItem(item) }
+            onSave = { item -> 
+                viewModel.addItem(item)
+                showAddDialog = false
+            }
         )
     }
 
@@ -230,6 +241,7 @@ fun ShoppingListScreen(
             },
             onSave = { updatedItem ->
                 viewModel.updateItem(itemToEdit!!.id, updatedItem)
+                showEditDialog = false
                 itemToEdit = null
             }
         )

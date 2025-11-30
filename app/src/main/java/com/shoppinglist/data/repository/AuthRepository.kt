@@ -194,6 +194,22 @@ class AuthRepository {
     }
 
     /**
+     * Reautentica o usuário com sua senha atual (necessário para operações sensíveis)
+     */
+    suspend fun reauthenticate(password: String): Result<Unit> {
+        val user = auth.currentUser ?: return Result.failure(Exception("Usuário não autenticado"))
+        val email = user.email ?: return Result.failure(Exception("Email não disponível"))
+        
+        return try {
+            val credential = com.google.firebase.auth.EmailAuthProvider.getCredential(email, password)
+            user.reauthenticate(credential).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Deleta a conta do usuário
      */
     suspend fun deleteAccount(): Result<Unit> {

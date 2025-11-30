@@ -89,10 +89,13 @@ fun NavGraph(
                             onClick = {
                                 if (currentRoute != item.route) {
                                     navController.navigate(item.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
+                                        // Pop everything up to the start destination
+                                        popUpTo(0) {
+                                            saveState = false
                                         }
+                                        // Avoid multiple copies of the same destination
                                         launchSingleTop = true
+                                        // Restore state when reselecting a previously selected item
                                         restoreState = true
                                     }
                                 }
@@ -205,8 +208,8 @@ fun NavGraph(
                             popUpTo(0)
                         }
                     },
-                    onDeleteAccount = {
-                        authViewModel.deleteAccount()
+                    onDeleteAccount = { password ->
+                        authViewModel.deleteAccount(password)
                         navController.navigate(Screen.Login.route) {
                             popUpTo(0)
                         }

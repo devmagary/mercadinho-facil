@@ -43,8 +43,8 @@ fun GlassCard(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        containerColor.copy(alpha = 0.6f),
-                        containerColor.copy(alpha = 0.2f)
+                containerColor.copy(alpha = 0.95f),
+                containerColor.copy(alpha = 0.90f)
                     )
                 )
             )
@@ -116,8 +116,8 @@ fun GlassTopBar(
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
-                        MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.90f)
                     )
                 )
             )
