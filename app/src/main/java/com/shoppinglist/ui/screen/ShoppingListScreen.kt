@@ -1,27 +1,51 @@
 package com.shoppinglist.ui.screen
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.shoppinglist.data.model.ShoppingItem
+import com.shoppinglist.ui.components.AddEditItemDialog
+import com.shoppinglist.ui.components.BentoGrid
 import com.shoppinglist.ui.components.FinishShoppingDialog
+import com.shoppinglist.ui.components.GlassTopBar
 import com.shoppinglist.ui.components.ShoppingItemCard
 import com.shoppinglist.viewmodel.ShoppingListViewModel
 
-/**
- * Tela principal da lista de compras
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShoppingListScreen(
@@ -41,111 +65,82 @@ fun ShoppingListScreen(
     // Mostrar mensagens
     LaunchedEffect(errorMessage) {
         errorMessage?.let {
-            // Aqui você pode mostrar um Snackbar
             viewModel.clearMessages()
         }
     }
 
     LaunchedEffect(successMessage) {
         successMessage?.let {
-            // Aqui você pode mostrar um Snackbar
             viewModel.clearMessages()
         }
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Lista de Compras") },
+            GlassTopBar(
+                title = {
+                    OutlinedTextField(
+                        value = currentList?.name ?: "",
+                        onValueChange = { newName ->
+                            viewModel.updateListName(newName.ifBlank { null })
+                        },
+                        placeholder = { Text("Nome da lista (ex: Churrasco)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
+                        ),
+                        textStyle = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                },
                 actions = {
                     IconButton(onClick = onNavigateToProfile) {
                         Icon(Icons.Filled.Person, contentDescription = "Perfil")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                }
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showAddDialog = true }
+                onClick = { showAddDialog = true },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = Color.White,
+                shape = RoundedCornerShape(16.dp)
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Adicionar Item")
+                Icon(Icons.Default.Add, contentDescription = "Adicionar Item")
             }
         }
-    ) { paddingValues ->
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
+                .padding(innerPadding)
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // Campo para nomear a lista
-            var listName by remember { mutableStateOf(currentList?.name ?: "") }
-            
-            OutlinedTextField(
-                value = listName,
-                onValueChange = { 
-                    listName = it
-                    viewModel.updateListName(it.ifBlank { null })
-                },
-                label = { Text("Nome da Lista") },
-                placeholder = { Text("Minha Lista") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                singleLine = true
-            )
-            
-            // Atualizar quando a lista mudar
-            LaunchedEffect(currentList?.name) {
-                listName = currentList?.name ?: ""
-            }
-            
-            // Botão para finalizar compra
-            if (currentList?.items?.isNotEmpty() == true) {
-                Button(
-                    onClick = { showFinishDialog = true },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Icon(Icons.Filled.ShoppingCart, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Finalizar Compra")
-                }
+            val items = currentList?.items ?: emptyList()
+            val totalEstimated = currentList?.calculateTotal() ?: 0.0
 
-                // Total
-                val total = currentList?.calculateTotal() ?: 0.0
-                if (total > 0) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        )
-                    ) {
-                        Text(
-                            text = "Total: R$ %.2f".format(total),
-                            style = MaterialTheme.typography.titleLarge,
-                            modifier = Modifier.padding(16.dp),
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                }
+            // Dashboard (Bento Grid)
+            if (items.isNotEmpty()) {
+                BentoGrid(
+                    items = items,
+                    totalEstimated = totalEstimated,
+                    onAddItem = { showAddDialog = true },
+                    onViewAnalytics = { showFinishDialog = true } // Temporarily mapped to finish dialog as quick action
+                )
             }
 
-            // Lista de itens
+            // Shopping List
             if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    androidx.compose.material3.CircularProgressIndicator()
                 }
-            } else if (currentList?.items?.isEmpty() != false) {
+            } else if (items.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
@@ -170,22 +165,20 @@ fun ShoppingListScreen(
                 }
             } else {
                 LazyColumn(
+                    contentPadding = PaddingValues(bottom = 80.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(
-                        items = currentList?.items ?: emptyList(),
-                        key = { it.id }
-                    ) { item ->
+                    items(items, key = { it.id }) { item ->
                         ShoppingItemCard(
                             item = item,
-                            onCheckedChange = {
+                            onCheckedChange = { _ ->
                                 viewModel.toggleItemChecked(item.id)
                             },
-                            onEdit = {
+                            onEditClick = {
                                 itemToEdit = item
                                 showEditDialog = true
                             },
-                            onDelete = {
+                            onDeleteClick = {
                                 viewModel.deleteItem(item.id)
                             }
                         )
@@ -195,17 +188,14 @@ fun ShoppingListScreen(
         }
     }
 
-    // Dialog para adicionar item
+    // Dialogs
     if (showAddDialog) {
         AddEditItemDialog(
             onDismiss = { showAddDialog = false },
-            onSave = { item ->
-                viewModel.addItem(item)
-            }
+            onSave = { item -> viewModel.addItem(item) }
         )
     }
 
-    // Dialog para editar item
     if (showEditDialog && itemToEdit != null) {
         AddEditItemDialog(
             item = itemToEdit,
@@ -220,7 +210,6 @@ fun ShoppingListScreen(
         )
     }
 
-    // Dialog para finalizar compra com opção de nomear
     if (showFinishDialog) {
         FinishShoppingDialog(
             currentName = currentList?.name,

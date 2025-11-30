@@ -1,37 +1,63 @@
 package com.shoppinglist.ui.components
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.RadioButtonUnchecked
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.shoppinglist.data.model.ShoppingItem
-import coil.compose.AsyncImage
 
-/**
- * Card para exibir um item da lista de compras
- */
 @Composable
 fun ShoppingItemCard(
     item: ShoppingItem,
-    onCheckedChange: () -> Unit,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit,
-    modifier: Modifier = Modifier
+    onCheckedChange: (Boolean) -> Unit,
+    onEditClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
+    val alpha by animateFloatAsState(targetValue = if (item.isChecked) 0.5f else 1f, label = "alpha")
+    val backgroundColor by animateColorAsState(
+        targetValue = if (item.isChecked) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) 
+                      else MaterialTheme.colorScheme.surface,
+        label = "bgColor"
+    )
+
     Card(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .padding(vertical = 4.dp, horizontal = 16.dp)
+            .alpha(alpha),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = if (!item.isChecked) BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)) else null
     ) {
         Row(
             modifier = Modifier
@@ -39,86 +65,68 @@ fun ShoppingItemCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Checkbox
-            IconButton(onClick = onCheckedChange) {
-                Icon(
-                    imageVector = if (item.isChecked) Icons.Filled.CheckCircle else Icons.Filled.RadioButtonUnchecked,
-                    contentDescription = if (item.isChecked) "Marcado" else "Não marcado",
-                    tint = if (item.isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            // Imagem (opcional)
-            item.imageUrl?.let { url ->
-                AsyncImage(
-                    model = url,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .padding(end = 12.dp)
-                )
-            }
-
-            // Informações do item
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 8.dp)
+            // Custom Checkbox/Avatar
+            Surface(
+                onClick = { onCheckedChange(!item.isChecked) },
+                shape = CircleShape,
+                color = if (item.isChecked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                modifier = Modifier.size(48.dp)
             ) {
-                Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    textDecoration = if (item.isChecked) TextDecoration.LineThrough else null,
-                    color = if (item.isChecked) 
-                        MaterialTheme.colorScheme.onSurfaceVariant 
-                    else 
-                        MaterialTheme.colorScheme.onSurface
-                )
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "${item.quantity} ${item.unit.displayName}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    
-                    item.price?.let { price ->
+                Box(contentAlignment = Alignment.Center) {
+                    if (item.isChecked) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                    } else {
                         Text(
-                            text = "• R$ %.2f".format(price),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            text = item.name.firstOrNull()?.uppercase() ?: "?",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-                
-                // Subtotal
-                if (item.price != null && item.price > 0) {
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    textDecoration = if (item.isChecked) TextDecoration.LineThrough else null
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = "Subtotal: R$ %.2f".format(item.getSubtotal()),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
+                        text = "${item.quantity} ${item.unit}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    if (item.price != null && item.price > 0) {
+                        Text(
+                            text = " • R$ %.2f".format(item.price),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.secondary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                 }
             }
 
-            // Botões de ação
             Row {
-                IconButton(onClick = onEdit) {
+                IconButton(onClick = onEditClick) {
                     Icon(
-                        imageVector = Icons.Filled.Edit,
+                        imageVector = Icons.Default.Edit,
                         contentDescription = "Editar",
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                
-                IconButton(onClick = onDelete) {
+                IconButton(onClick = onDeleteClick) {
                     Icon(
-                        imageVector = Icons.Filled.Delete,
+                        imageVector = Icons.Default.Delete,
                         contentDescription = "Deletar",
                         tint = MaterialTheme.colorScheme.error
                     )
