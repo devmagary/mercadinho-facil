@@ -5,17 +5,20 @@ import androidx.lifecycle.viewModelScope
 import com.shoppinglist.data.model.ShoppingList
 import com.shoppinglist.data.repository.AuthRepository
 import com.shoppinglist.data.repository.ShoppingRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * ViewModel para gerenciar o histórico de compras
  */
-class HistoryViewModel(
-    private val authRepository: AuthRepository = AuthRepository(),
-    private val shoppingRepository: ShoppingRepository = ShoppingRepository(authRepository)
+@HiltViewModel
+class HistoryViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val shoppingRepository: ShoppingRepository
 ) : ViewModel() {
 
     private val _historyList = MutableStateFlow<List<ShoppingList>>(emptyList())

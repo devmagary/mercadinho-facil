@@ -11,15 +11,17 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import java.util.Date
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Repository para gerenciar listas de compras no Firestore
  */
-class ShoppingRepository(
+@Singleton
+class ShoppingRepository @Inject constructor(
+    private val firestore: FirebaseFirestore,
     private val authRepository: AuthRepository
 ) {
-    private val firestore = FirebaseFirestore.getInstance()
-    
     /**
      * Observa a lista de compras ativa da família em tempo real
      */
@@ -45,54 +47,52 @@ class ShoppingRepository(
     }
     
     /**
-     * Adiciona um item à lista atual
+     * Adiciona um item à lista atual de forma atômica
      */
     suspend fun addItem(familyId: String, item: ShoppingItem): Result<Unit> {
         return try {
             val docRef = firestore.collection("currentLists").document(familyId)
-            val doc = docRef.get().await()
-            
-            val currentList = if (doc.exists()) {
-                ShoppingList.fromMap(doc.id, doc.data ?: emptyMap())
-            } else {
-                ShoppingList(id = familyId, familyId = familyId)
-            }
-            
-            val updatedItems = currentList.items + item
-            val updatedList = currentList.copy(
-                familyId = familyId, // Garantir familyId correto
-                items = updatedItems
-            )
-            
-            docRef.set(updatedList.toMap()).await()
+            // Usa arrayUnion para adicionar o item de forma atômica.
+            // O toMap() converte o data object em um mapa para o Firestore.
+            docRef.update("items", com.google.firebase.firestore.FieldValue.arrayUnion(item.toMap())).await()
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            // Se o documento não existir, o update falha.
+            // Então, criamos o documento com o primeiro item.
+            if (e is com.google.firebase.firestore.FirebaseFirestoreException && e.code == com.google.firebase.firestore.FirebaseFirestoreException.Code.NOT_FOUND) {
+                try {
+                    val docRef = firestore.collection("currentLists").document(familyId)
+                    val newList = ShoppingList(id = familyId, familyId = familyId, items = listOf(item))
+                    docRef.set(newList.toMap()).await()
+                    Result.success(Unit)
+                } catch (e2: Exception) {
+                    Result.failure(e2)
+                }
+            } else {
+                Result.failure(e)
+            }
         }
     }
     
     /**
-     * Atualiza um item existente
+     * Atualiza um item existente usando uma transação para segurança
      */
     suspend fun updateItem(familyId: String, itemId: String, updatedItem: ShoppingItem): Result<Unit> {
         return try {
             val docRef = firestore.collection("currentLists").document(familyId)
-            val doc = docRef.get().await()
-            
-            if (!doc.exists()) {
-                return Result.failure(Exception("Lista não encontrada"))
-            }
-            
-            val currentList = ShoppingList.fromMap(doc.id, doc.data ?: emptyMap())
-            val updatedItems = currentList.items.map { 
-                if (it.id == itemId) updatedItem else it 
-            }
-            val updatedList = currentList.copy(
-                familyId = familyId, // Garantir familyId correto
-                items = updatedItems
-            )
-            
-            docRef.set(updatedList.toMap()).await()
+            firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(docRef)
+                if (!snapshot.exists()) {
+                    throw FirebaseFirestoreException("Lista não encontrada", FirebaseFirestoreException.Code.NOT_FOUND)
+                }
+
+                val currentList = ShoppingList.fromMap(snapshot.id, snapshot.data ?: emptyMap())
+                val updatedItems = currentList.items.map { 
+                    if (it.id == itemId) updatedItem else it 
+                }
+                
+                transaction.update(docRef, "items", updatedItems.map { it.toMap() })
+            }.await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -100,25 +100,24 @@ class ShoppingRepository(
     }
     
     /**
-     * Remove um item da lista
+     * Remove um item da lista usando uma transação
      */
     suspend fun deleteItem(familyId: String, itemId: String): Result<Unit> {
         return try {
             val docRef = firestore.collection("currentLists").document(familyId)
-            val doc = docRef.get().await()
-            
-            if (!doc.exists()) {
-                return Result.failure(Exception("Lista não encontrada"))
-            }
-            
-            val currentList = ShoppingList.fromMap(doc.id, doc.data ?: emptyMap())
-            val updatedItems = currentList.items.filter { it.id != itemId }
-            val updatedList = currentList.copy(
-                familyId = familyId, // Garantir familyId correto
-                items = updatedItems
-            )
-            
-            docRef.set(updatedList.toMap()).await()
+            firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(docRef)
+                if (!snapshot.exists()) {
+                    throw FirebaseFirestoreException("Lista não encontrada", FirebaseFirestoreException.Code.NOT_FOUND)
+                }
+                
+                val currentList = ShoppingList.fromMap(snapshot.id, snapshot.data ?: emptyMap())
+                val itemToRemove = currentList.items.find { it.id == itemId }
+                
+                if (itemToRemove != null) {
+                    transaction.update(docRef, "items", com.google.firebase.firestore.FieldValue.arrayRemove(itemToRemove.toMap()))
+                }
+            }.await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -126,27 +125,23 @@ class ShoppingRepository(
     }
     
     /**
-     * Marca/desmarca um item como comprado
+     * Marca/desmarca um item como comprado usando uma transação
      */
     suspend fun toggleItemChecked(familyId: String, itemId: String): Result<Unit> {
         return try {
             val docRef = firestore.collection("currentLists").document(familyId)
-            val doc = docRef.get().await()
-            
-            if (!doc.exists()) {
-                return Result.failure(Exception("Lista não encontrada"))
-            }
-            
-            val currentList = ShoppingList.fromMap(doc.id, doc.data ?: emptyMap())
-            val updatedItems = currentList.items.map { item ->
-                if (item.id == itemId) item.copy(isChecked = !item.isChecked) else item
-            }
-            val updatedList = currentList.copy(
-                familyId = familyId, // Garantir familyId correto
-                items = updatedItems
-            )
-            
-            docRef.set(updatedList.toMap()).await()
+            firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(docRef)
+                if (!snapshot.exists()) {
+                     throw FirebaseFirestoreException("Lista não encontrada", FirebaseFirestoreException.Code.NOT_FOUND)
+                }
+
+                val currentList = ShoppingList.fromMap(snapshot.id, snapshot.data ?: emptyMap())
+                val updatedItems = currentList.items.map { item ->
+                    if (item.id == itemId) item.copy(isChecked = !item.isChecked) else item
+                }
+                transaction.update(docRef, "items", updatedItems.map { it.toMap() })
+            }.await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -155,8 +150,11 @@ class ShoppingRepository(
     
     /**
      * Finaliza a compra atual e move para o histórico
+     * @param familyId ID da família
+     * @param listName Nome personalizado da lista (opcional)
+     * @param manualTotalValue Valor total manual da lista (opcional - se null, usa o valor calculado dos itens)
      */
-    suspend fun finishShopping(familyId: String, listName: String?): Result<Unit> {
+    suspend fun finishShopping(familyId: String, listName: String?, manualTotalValue: Double? = null): Result<Unit> {
         return try {
             val currentDocRef = firestore.collection("currentLists").document(familyId)
             val doc = currentDocRef.get().await()
@@ -171,8 +169,8 @@ class ShoppingRepository(
                 return Result.failure(Exception("Lista está vazia"))
             }
             
-            // Calcular o total dos itens
-            val totalValue = currentList.calculateTotal()
+            // Usar valor manual se fornecido, senão calcular dos itens
+            val totalValue = manualTotalValue ?: currentList.calculateTotal()
             
             // Criar entrada no histórico com data de conclusão
             val completedAt = Date()
@@ -187,11 +185,11 @@ class ShoppingRepository(
             android.util.Log.d("ShoppingRepository", "Salvando histórico:")
             android.util.Log.d("ShoppingRepository", "- Nome: $listName")
             android.util.Log.d("ShoppingRepository", "- CompletedAt: $completedAt")
-            android.util.Log.d("ShoppingRepository", "- Total: $totalValue")
+            android.util.Log.d("ShoppingRepository", "- Total: $totalValue (manual: ${manualTotalValue != null})")
             
-            // Salvar no histórico com total calculado
+            // Salvar no histórico com o valor total (manual ou calculado)
             val historyData = completedList.toMap().toMutableMap()
-            historyData["totalValue"] = totalValue // Sobrescrever com o total real
+            historyData["totalValue"] = totalValue
             
             android.util.Log.d("ShoppingRepository", "HistoryData map: $historyData")
             

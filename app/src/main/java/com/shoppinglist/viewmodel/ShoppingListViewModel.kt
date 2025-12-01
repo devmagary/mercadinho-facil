@@ -6,17 +6,20 @@ import com.shoppinglist.data.model.ShoppingItem
 import com.shoppinglist.data.model.ShoppingList
 import com.shoppinglist.data.repository.AuthRepository
 import com.shoppinglist.data.repository.ShoppingRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * ViewModel principal para gerenciar a lista de compras atual
  */
-class ShoppingListViewModel(
-    private val authRepository: AuthRepository = AuthRepository(),
-    private val shoppingRepository: ShoppingRepository = ShoppingRepository(authRepository)
+@HiltViewModel
+class ShoppingListViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val shoppingRepository: ShoppingRepository
 ) : ViewModel() {
 
     private val _currentList = MutableStateFlow<ShoppingList?>(null)
@@ -140,15 +143,17 @@ class ShoppingListViewModel(
 
     /**
      * Finaliza a compra atual
+     * @param listName Nome personalizado da lista (opcional)
+     * @param totalValue Valor total manual da lista (opcional - se null, usa o valor calculado)
      */
-    fun finishShopping(listName: String?) {
+    fun finishShopping(listName: String?, totalValue: Double? = null) {
         viewModelScope.launch {
             _isLoading.value = true
             val user = authRepository.getCurrentUser()
             val familyId = user?.familyId
 
             if (familyId != null) {
-                val result = shoppingRepository.finishShopping(familyId, listName)
+                val result = shoppingRepository.finishShopping(familyId, listName, totalValue)
                 result.onSuccess {
                     _successMessage.value = "Compra finalizada com sucesso!"
                 }

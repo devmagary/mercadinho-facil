@@ -16,6 +16,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -26,7 +27,7 @@ import com.shoppinglist.ui.screen.AnalyticsScreen
 import com.shoppinglist.ui.screen.HistoryScreen
 import com.shoppinglist.ui.screen.ProfileScreen
 import com.shoppinglist.ui.screen.ShoppingListScreen
-import com.shoppinglist.viewmodel.ThemeViewModel
+import com.shoppinglist.viewmodel.AuthViewModel
 
 /**
  * Item da barra de navegação inferior
@@ -41,11 +42,9 @@ data class BottomNavItem(
  * Configuração da navegação do aplicativo
  */
 @Composable
-fun NavGraph(
-    authViewModel: com.shoppinglist.viewmodel.AuthViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    themeViewModel: ThemeViewModel
-) {
+fun NavGraph() {
     val navController = rememberNavController()
+    val authViewModel: AuthViewModel = hiltViewModel()
     val currentUser by authViewModel.currentUser.collectAsState()
     val isLoading by authViewModel.isLoading.collectAsState()
     
@@ -147,8 +146,7 @@ fun NavGraph(
                         navController.navigate(Screen.ShoppingList.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
-                    },
-                    viewModel = authViewModel
+                    }
                 )
             }
 
@@ -161,8 +159,7 @@ fun NavGraph(
                         navController.navigate(Screen.ShoppingList.route) {
                             popUpTo(Screen.Login.route) { inclusive = true }
                         }
-                    },
-                    viewModel = authViewModel
+                    }
                 )
             }
 
@@ -170,8 +167,7 @@ fun NavGraph(
                 com.shoppinglist.ui.screen.ForgotPasswordScreen(
                     onNavigateBack = {
                         navController.popBackStack()
-                    },
-                    viewModel = authViewModel
+                    }
                 )
             }
 
@@ -207,14 +203,7 @@ fun NavGraph(
                         navController.navigate(Screen.Login.route) {
                             popUpTo(0)
                         }
-                    },
-                    onDeleteAccount = { password ->
-                        authViewModel.deleteAccount(password)
-                        navController.navigate(Screen.Login.route) {
-                            popUpTo(0)
-                        }
-                    },
-                    themeViewModel = themeViewModel
+                    }
                 )
             }
         }

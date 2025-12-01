@@ -5,13 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.shoppinglist.data.model.Family
 import com.shoppinglist.data.model.User
 import com.shoppinglist.data.repository.AuthRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ProfileViewModel(
-    private val authRepository: AuthRepository = AuthRepository()
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _user = MutableStateFlow<User?>(null)

@@ -250,9 +250,10 @@ fun ShoppingListScreen(
     if (showFinishDialog) {
         FinishShoppingDialog(
             currentName = currentList?.name,
+            calculatedTotal = currentList?.calculateTotal() ?: 0.0,
             onDismiss = { showFinishDialog = false },
-            onConfirm = { listName ->
-                viewModel.finishShopping(listName)
+            onConfirm = { name, totalValue ->
+                viewModel.finishShopping(name, totalValue)
                 showFinishDialog = false
             }
         )

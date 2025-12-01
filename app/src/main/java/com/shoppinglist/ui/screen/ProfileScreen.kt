@@ -12,7 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.shoppinglist.viewmodel.AuthViewModel
 import com.shoppinglist.viewmodel.ProfileViewModel
 import com.shoppinglist.viewmodel.ThemeViewModel
 import com.shoppinglist.ui.components.GlassTopBar
@@ -24,9 +25,9 @@ import kotlinx.coroutines.delay
 fun ProfileScreen(
     onNavigateBack: () -> Unit,
     onLogout: () -> Unit,
-    onDeleteAccount: (String) -> Unit,
-    profileViewModel: ProfileViewModel = viewModel(),
-    themeViewModel: ThemeViewModel
+    profileViewModel: ProfileViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel(),
+    authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val user by profileViewModel.user.collectAsState()
     val family by profileViewModel.family.collectAsState()
@@ -79,9 +80,10 @@ fun ProfileScreen(
                 Button(
                     onClick = {
                         if (deletePassword.isNotBlank()) {
+                            authViewModel.deleteAccount(deletePassword)
                             showPasswordDialog = false
-                            onDeleteAccount(deletePassword)
                             deletePassword = ""
+                            onLogout() // Navigate out after deletion
                         } else {
                             passwordError = true
                         }
@@ -276,6 +278,7 @@ fun ProfileScreen(
                 // Logout Button
                 OutlinedButton(
                     onClick = {
+                        authViewModel.logout()
                         onLogout()
                     },
                     modifier = Modifier.fillMaxWidth(),

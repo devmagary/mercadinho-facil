@@ -12,17 +12,20 @@ import com.shoppinglist.ui.navigation.NavGraph
 import com.shoppinglist.ui.theme.ShoppingListTheme
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
+import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * MainActivity - Ponto de entrada do aplicativo
  */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
         setContent {
-            val themeViewModel: com.shoppinglist.viewmodel.ThemeViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+            val themeViewModel: com.shoppinglist.viewmodel.ThemeViewModel = hiltViewModel()
             val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
             
             ShoppingListTheme(

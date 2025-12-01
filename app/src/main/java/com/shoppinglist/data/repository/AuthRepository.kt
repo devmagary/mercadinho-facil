@@ -6,16 +6,19 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.shoppinglist.data.model.Family
 import com.shoppinglist.data.model.User
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**
  * Repository para gerenciar autenticação e dados de usuários
  */
-class AuthRepository {
-    private val auth = FirebaseAuth.getInstance()
-    private val firestore = FirebaseFirestore.getInstance()
-    
+@Singleton
+class AuthRepository @Inject constructor(
+    private val auth: FirebaseAuth,
+    private val firestore: FirebaseFirestore
+) {
     /**
      * Retorna o usuário atualmente autenticado
      */
