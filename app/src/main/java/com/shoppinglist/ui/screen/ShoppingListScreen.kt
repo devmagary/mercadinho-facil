@@ -41,7 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.shoppinglist.data.model.ShoppingItem
 import com.shoppinglist.ui.components.AddEditItemDialog
 import com.shoppinglist.ui.components.BentoGrid
@@ -53,7 +53,7 @@ import com.shoppinglist.viewmodel.ShoppingListViewModel
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ShoppingListScreen(
-    viewModel: ShoppingListViewModel = viewModel(),
+    viewModel: ShoppingListViewModel = hiltViewModel(),
     onNavigateToProfile: () -> Unit
 ) {
     val currentList by viewModel.currentList.collectAsState()

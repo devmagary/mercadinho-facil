@@ -5,12 +5,14 @@ import androidx.lifecycle.viewModelScope
 import com.shoppinglist.data.model.ShoppingList
 import com.shoppinglist.data.repository.AuthRepository
 import com.shoppinglist.data.repository.ShoppingRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import javax.inject.Inject
 
 /**
  * Data class para representar análises por período
@@ -25,9 +27,10 @@ data class PeriodAnalytics(
 /**
  * ViewModel para análises e estatísticas
  */
-class AnalyticsViewModel(
-    private val authRepository: AuthRepository = AuthRepository(),
-    private val shoppingRepository: ShoppingRepository = ShoppingRepository(authRepository)
+@HiltViewModel
+class AnalyticsViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val shoppingRepository: ShoppingRepository
 ) : ViewModel() {
 
     private val _analytics = MutableStateFlow<List<PeriodAnalytics>>(emptyList())

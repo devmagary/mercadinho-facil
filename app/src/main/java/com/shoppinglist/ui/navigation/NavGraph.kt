@@ -28,6 +28,7 @@ import com.shoppinglist.ui.screen.HistoryScreen
 import com.shoppinglist.ui.screen.ProfileScreen
 import com.shoppinglist.ui.screen.ShoppingListScreen
 import com.shoppinglist.viewmodel.AuthViewModel
+import com.shoppinglist.viewmodel.ThemeViewModel
 
 /**
  * Item da barra de navegação inferior
@@ -42,7 +43,7 @@ data class BottomNavItem(
  * Configuração da navegação do aplicativo
  */
 @Composable
-fun NavGraph() {
+fun NavGraph(themeViewModel: ThemeViewModel = hiltViewModel()) {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = hiltViewModel()
     val currentUser by authViewModel.currentUser.collectAsState()
@@ -203,7 +204,8 @@ fun NavGraph() {
                         navController.navigate(Screen.Login.route) {
                             popUpTo(0)
                         }
-                    }
+                    },
+                    themeViewModel = themeViewModel
                 )
             }
         }

@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.shoppinglist.data.model.ShoppingList
 import com.shoppinglist.ui.components.GlassCard
 import com.shoppinglist.viewmodel.HistoryViewModel
@@ -25,7 +25,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
-    viewModel: HistoryViewModel = viewModel()
+    viewModel: HistoryViewModel = hiltViewModel()
 ) {
     val historyList by viewModel.historyList.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
